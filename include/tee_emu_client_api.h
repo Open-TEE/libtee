@@ -31,7 +31,8 @@ typedef struct {
  * \brief TEEC_Session Container linking a Client Application to a particular Trusted Application
  */
 typedef struct {
-	void *imp;
+	int sockfd;
+	uint8_t init;
 } TEEC_Session;
 
 enum mem_type {

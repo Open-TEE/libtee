@@ -20,6 +20,8 @@
 #include <inttypes.h>
 #include <stddef.h>
 
+#include "../../emulator/include/general_data_types.h"
+
 #define EMULATOR
 
 #ifdef EMULATOR
@@ -34,13 +36,14 @@ typedef uint32_t TEEC_Result;
 /*!
  * \brief RFC4122 Compliant Universally unique Resource Identifier (UUID)
  */
+/*
 typedef struct {
 	uint32_t timeLow;
 	uint16_t timeMid;
 	uint16_t timeHiAndVersion;
 	uint8_t  clockSeqAndNode[8];
 } TEEC_UUID;
-
+*/
 /*!
  * \brief TEEC_TempMemoryReference A Temporary memorry Reference as used by \sa TEEC_Operation
  */
@@ -116,12 +119,6 @@ typedef struct {
 #define TEEC_ERROR_SECURITY		0xFFFF000F
 #define TEEC_ERROR_SHORT_BUFFER		0xFFFF0010
 #define TEEC_ERROR_TARGET_DEAD		0xFFFF3024
-
-/* Return Code Origins */
-#define TEEC_ORIGIN_API			0x00000001
-#define TEEC_ORIGIN_COMMS		0x00000002
-#define TEEC_ORIGIN_TEE			0x00000003
-#define TEEC_ORIGIN_TRUSTED_APP		0x00000004
 
 /* Shared Memory Control Flags */
 #define TEEC_MEM_INPUT			0x00000001

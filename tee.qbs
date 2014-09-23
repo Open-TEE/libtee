@@ -3,10 +3,10 @@ import qbs
 DynamicLibrary {
     name: "tee"
     Depends { name: "cpp" }
+    Depends { name: "CommonApi" }
     cpp.includePaths: ["include"]
     cpp.dynamicLibraries: ["uuid", "rt", "crypt"]
-
-    destinationDirectory: '.'
+    cpp.warningLevel: "none"
 
     Export {
         Depends { name: "cpp" }
@@ -15,7 +15,8 @@ DynamicLibrary {
 
     files: ["include/tee_client_api.h", "include/tee_emu_client_api.h",
         'src/open_emu_ipc/tee_client_api_emu_ipc.c',
-        'src/open_emu_ipc/list.h', 'src/open_emu_ipc/list.c',
-        'src/open_emu_ipc/utils.h', 'src/open_emu_ipc/utils.c'
+        'src/open_emu_ipc/utils.h', 'src/open_emu_ipc/utils.c',
+        "../emulator/include/com_protocol.h", "../emulator/include/general_data_types.h",
+        "../emulator/include/socket_help.h"
     ]
 }

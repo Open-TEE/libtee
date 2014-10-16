@@ -95,7 +95,7 @@ static TEEC_Result create_shared_mem_internal(TEEC_Context *context, TEEC_Shared
 	else if (type == REGISTERED)
 		shared_mem->reg_address = address;
 
-	//TODO we must register the shared memory with the context
+	/* TODO we must register the shared memory with the context */
 	shared_mem->parent_ctx = context;
 	shared_mem->type = type;
 	shared_mem->init = INITIALIZED;
@@ -144,7 +144,7 @@ void TEEC_FinalizeContext(TEEC_Context *context)
 	if (!context || context->init != INITIALIZED)
 		return;
 
-	//TODO should check that we do not have any open sessions first
+	/* TODO should check that we do not have any open sessions first */
 	close(context->sockfd);
 	context->init = 0xFF;
 	return;
@@ -184,7 +184,7 @@ void TEEC_ReleaseSharedMemory(TEEC_SharedMemory *shared_mem)
 	shm_unlink(shared_mem->shm_uuid);
 	free(shared_mem->shm_uuid);
 
-	//TODO we must unregister the shared memory from the Context
+	/* TODO we must unregister the shared memory from the Context */
 
 	shared_mem->init = 0xFF;
 	return;

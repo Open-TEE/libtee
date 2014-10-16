@@ -1,5 +1,5 @@
 /*****************************************************************************
-** Copyright (C) 2013 Intel Corporation.                                    **
+** Copyright (C) 2014 Intel Corperation.                                    **
 **                                                                          **
 ** Licensed under the Apache License, Version 2.0 (the "License");          **
 ** you may not use this file except in compliance with the License.         **
@@ -14,7 +14,12 @@
 ** limitations under the License.                                           **
 *****************************************************************************/
 
-#ifndef __TEE_LIST_H__
-#define __TEE_LIST_H__
+#ifndef __TEE_LOGGING_H__
+#define __TEE_LOGGING_H__
 
-#endif
+#include <syslog.h>
+
+#define OT_LOG(level, message) syslog(level, "%s:%s:%d  %s\n", \
+	__FILE__, __func__, __LINE__, message);
+
+#endif /* __TEE_LOGGING_H__ */

@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_d3c0e07e",
+        "filename": "include/com_protocol.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-10-16T14:51:39Z",
+      "side": 1,
+      "message": "doxygen descriptions of the structs and the functions to define what is going on.",
+      "revId": "6417b421459b66ace667987a3ac032d4c7d90883",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_334b145b",
+        "filename": "include/com_protocol.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-10-16T14:51:39Z",
+      "side": 1,
+      "message": "you could show the \"width\" of each section above, i.e. how many bits / bytes each section contains",
+      "range": {
+        "startLine": 41,
+        "startChar": 1,
+        "endLine": 41,
+        "endChar": 3
+      },
+      "revId": "6417b421459b66ace667987a3ac032d4c7d90883",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_d36460e7",
+        "filename": "include/com_protocol.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-10-16T14:51:39Z",
+      "side": 1,
+      "message": "internally ?",
+      "range": {
+        "startLine": 60,
+        "startChar": 19,
+        "endLine": 60,
+        "endChar": 26
+      },
+      "revId": "6417b421459b66ace667987a3ac032d4c7d90883",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_3362f4d8",
+        "filename": "include/com_protocol.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-10-16T14:51:39Z",
+      "side": 1,
+      "message": "do we really want this type of typedef ?",
+      "range": {
+        "startLine": 69,
+        "startChar": 8,
+        "endLine": 69,
+        "endChar": 16
+      },
+      "revId": "6417b421459b66ace667987a3ac032d4c7d90883",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_f3aebce6",
+        "filename": "include/com_protocol.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-10-16T14:51:39Z",
+      "side": 1,
+      "message": "this should not have _t at the end it is not a typedef",
+      "range": {
+        "startLine": 71,
+        "startChar": 5,
+        "endLine": 71,
+        "endChar": 13
+      },
+      "revId": "6417b421459b66ace667987a3ac032d4c7d90883",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_53a050f4",
+        "filename": "include/com_protocol.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-10-16T14:51:39Z",
+      "side": 1,
+      "message": "very similar to com_msg_hdr_t",
+      "range": {
+        "startLine": 78,
+        "startChar": 7,
+        "endLine": 78,
+        "endChar": 18
+      },
+      "revId": "6417b421459b66ace667987a3ac032d4c7d90883",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_33be7400",
+        "filename": "include/tee_logging.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-10-16T14:51:39Z",
+      "side": 1,
+      "message": "corporation  :)",
+      "range": {
+        "startLine": 2,
+        "startChar": 28,
+        "endLine": 2,
+        "endChar": 39
+      },
+      "revId": "6417b421459b66ace667987a3ac032d4c7d90883",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

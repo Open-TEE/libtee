@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_f9f85dc6",
+        "filename": "include/tee_logging.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-10-20T16:25:26Z",
+      "side": 1,
+      "message": "this will not compile, ##__VA_ARGS__ requires the ...  so this should be\n\n\n#define OT_LOG1(level, message, ...) syslog(level, message, ##__VA_ARGS__);",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 70
+      },
+      "revId": "0bb4fb4fee9cb9716b7e3fa83dc7364f5d98e185",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

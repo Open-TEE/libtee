@@ -45,6 +45,30 @@
       "revId": "661704fdb1b63d94532d2a8a610ae4d95d4ff37f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_55066d21",
+        "filename": "src/com_protocol.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1000804
+      },
+      "writtenOn": "2014-10-28T09:11:47Z",
+      "side": 1,
+      "message": "Needed? We will overwrite whole buffer anyway?",
+      "parentUuid": "7a6b29fe_95180586",
+      "range": {
+        "startLine": 93,
+        "startChar": 8,
+        "endLine": 93,
+        "endChar": 14
+      },
+      "revId": "661704fdb1b63d94532d2a8a610ae4d95d4ff37f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }

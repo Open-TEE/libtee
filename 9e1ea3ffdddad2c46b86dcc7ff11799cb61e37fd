@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_7deeefed",
+        "filename": "src/tee_client_ipc_api.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-10-29T18:21:58Z",
+      "side": 1,
+      "message": "this is fine for now as it is not multi threaded, but this is a lot of work to do while holding a mutex.",
+      "range": {
+        "startLine": 216,
+        "startChar": 0,
+        "endLine": 216,
+        "endChar": 1
+      },
+      "revId": "9e1ea3ffdddad2c46b86dcc7ff11799cb61e37fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

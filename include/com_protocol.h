@@ -47,22 +47,22 @@
 #include "tee_shared_data_types.h"
 
 /* Communication protocol message names */
-#define COM_MSG_NAME_RESERVED			0x00 /* Zero is reserved */
-#define COM_MSG_NAME_CA_INIT_CONTEXT		0x01
-#define COM_MSG_NAME_OPEN_SESSION		0x02
-#define COM_MSG_NAME_CREATED_TA			0x03
-#define COM_MSG_NAME_INVOKE_CMD			0x04
-#define COM_MSG_NAME_CLOSE_SESSION		0x05
-#define COM_MSG_NAME_CA_FINALIZ_CONTEXT		0x06
-#define COM_MSG_NAME_PROC_STATUS_CHANGE		0x07
-#define COM_MSG_NAME_FD_ERR			0x08
-#define COM_MSG_NAME_ERROR			0x09
+#define COM_MSG_NAME_RESERVED 0x00 /* Zero is reserved */
+#define COM_MSG_NAME_CA_INIT_CONTEXT 0x01
+#define COM_MSG_NAME_OPEN_SESSION 0x02
+#define COM_MSG_NAME_CREATED_TA 0x03
+#define COM_MSG_NAME_INVOKE_CMD 0x04
+#define COM_MSG_NAME_CLOSE_SESSION 0x05
+#define COM_MSG_NAME_CA_FINALIZ_CONTEXT 0x06
+#define COM_MSG_NAME_PROC_STATUS_CHANGE 0x07
+#define COM_MSG_NAME_FD_ERR 0x08
+#define COM_MSG_NAME_ERROR 0x09
 
 /* Request is used internally */
-#define COM_TYPE_QUERY				1
-#define COM_TYPE_RESPONSE			0
+#define COM_TYPE_QUERY 1
+#define COM_TYPE_RESPONSE 0
 
-#define TA_MAX_NAME_LEN				255
+#define TA_MAX_NAME_LEN 255
 
 /*!
  * \brief The com_sender enum
@@ -73,7 +73,6 @@ enum com_sender {
 	com_sender_TA,
 	com_sender_launcher,
 	com_sender_manager,
-
 	com_sender_force_enum_size = INT_MAX
 };
 
@@ -81,15 +80,14 @@ enum com_sender {
  * \brief The com_msg_hdr struct
  * Message header is containing generic information, which is common for all messages
  */
-struct com_msg_hdr {
+struct com_msg_hdr
+{
 	uint64_t sess_id;
 	enum com_sender sender_type; /* Not used by client nor TA */
 	uint8_t msg_name;
 	uint8_t msg_type;
 
-} __attribute__ ((aligned));
-
-
+} __attribute__((aligned));
 
 /*
  * ## Message section start ##
@@ -99,16 +97,18 @@ struct com_msg_hdr {
  * \brief The com_msg_ca_init_tee_conn struct
  * Register new CA connection to TEE (TEEC_InitializeContext).
  */
-struct com_msg_ca_init_tee_conn {
+struct com_msg_ca_init_tee_conn
+{
 	struct com_msg_hdr msg_hdr;
 	TEE_Result ret;
-} __attribute__ ((aligned));
+} __attribute__((aligned));
 
 /*!
  * \brief The com_msg_open_session struct
  * CA is opening new connection to TA (TEEC_OpenSession).
  */
-struct com_msg_open_session {
+struct com_msg_open_session
+{
 	struct com_msg_hdr msg_hdr;
 	char ta_so_name[TA_MAX_NAME_LEN];
 	TEE_UUID uuid;
@@ -119,13 +119,14 @@ struct com_msg_open_session {
 
 	/* TODO: parameters */
 
-} __attribute__ ((aligned));
+} __attribute__((aligned));
 
 /*!
  * \brief The com_msg_invoke_cmd struct
  * CA or TA is invoking command from TA (TEEC_InvokeCommand)
  */
-struct com_msg_invoke_cmd {
+struct com_msg_invoke_cmd
+{
 	struct com_msg_hdr msg_hdr;
 	uint64_t session_id;
 	TEE_Result return_code;
@@ -134,61 +135,67 @@ struct com_msg_invoke_cmd {
 
 	/* TODO: parameters */
 
-} __attribute__ ((aligned));
+} __attribute__((aligned));
 
 /*!
  * \brief The com_msg_ta_created struct
  * Launcher is reporting launched TA PID. If PID is -1, something went wrong with launching
  * for example clone-function call failed.
  */
-struct com_msg_ta_created {
+struct com_msg_ta_created
+{
 	struct com_msg_hdr msg_hdr;
 	pid_t pid;
-} __attribute__ ((aligned));
+} __attribute__((aligned));
 
 /*!
  * \brief The com_msg_close_session struct
  * CA or TA closing session (TEEC_CloseSession)
  */
-struct com_msg_close_session {
+struct com_msg_close_session
+{
 	struct com_msg_hdr msg_hdr;
 	int should_ta_destroy;
-} __attribute__ ((aligned));
+} __attribute__((aligned));
 
 /*!
  * \brief The com_msg_ca_finalize_constex struct
  * CA is closing connection to TEE (TEEC_FinalizeContext)
  */
-struct com_msg_ca_finalize_constex {
+struct com_msg_ca_finalize_constex
+{
 	struct com_msg_hdr msg_hdr;
 	/* Empty */
-} __attribute__ ((aligned));
+} __attribute__((aligned));
 
 /*!
  * \brief The com_msg_proc_status_change struct
  * Manager IO thread is reporting  to manager logic thread that some of child process
  * status has been changed.
  */
-struct com_msg_proc_status_change {
+struct com_msg_proc_status_change
+{
 	struct com_msg_hdr msg_hdr;
 	/* Empty */
-} __attribute__ ((aligned));
+} __attribute__((aligned));
 
 /*!
  * \brief The com_msg_fd_err struct
  * Manager IO thread encountered fd error and reporting it to manager logic thread.
  */
-struct com_msg_fd_err {
+struct com_msg_fd_err
+{
 	struct com_msg_hdr msg_hdr;
 	void *proc_ptr;
 	int err_no;
-} __attribute__ ((aligned));
+} __attribute__((aligned));
 
 /*!
  * \brief The com_msg_gen_err struct
  * Generic error message.
  */
-struct com_msg_error {
+struct com_msg_error
+{
 	struct com_msg_hdr msg_hdr;
 	TEE_Result ret;
 	uint32_t ret_origin;
@@ -197,11 +204,6 @@ struct com_msg_error {
 /*
  *  ## Message section end ##
  */
-
-
-
-
-
 
 /*
  * Function for receiving and  sending messages
@@ -229,9 +231,6 @@ int com_recv_msg(int sockfd, void **msg, int *msg_len);
  */
 int com_send_msg(int sockfd, void *msg, int msg_len);
 
-
-
-
 /*
  * Get-functions for accessing protocol base functionality.
  */
@@ -240,4 +239,3 @@ int com_get_msg_type(void *msg, uint8_t *msg_type);
 int com_get_msg_sess_id(void *msg, uint64_t *sess_id);
 
 #endif /* __COM_PROTOCOL_H__ */
-

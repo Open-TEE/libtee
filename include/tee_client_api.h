@@ -29,34 +29,35 @@
 #include "tee_shared_data_types.h"
 
 /* Shared Memory Control Flags */
-#define TEEC_MEM_INPUT			0x00000001
-#define TEEC_MEM_OUTPUT			0x00000002
+#define TEEC_MEM_INPUT 0x00000001
+#define TEEC_MEM_OUTPUT 0x00000002
 
 /* Paramater Types */
-#define TEEC_NONE			0x00000000
-#define TEEC_VALUE_INPUT		0x00000001
-#define TEEC_VALUE_OUTPUT		0x00000002
-#define TEEC_VALUE_INOUT		0x00000003
-#define TEEC_MEMREF_TEMP_INPUT		0x00000005
-#define TEEC_MEMREF_TEMP_OUTPUT		0x00000006
-#define TEEC_MEMREF_TEMP_INOUT		0x00000007
-#define TEEC_MEMREF_WHOLE		0x0000000C
-#define TEEC_MEMREF_PARTIAL_INPUT	0x0000000D
-#define TEEC_MEMREF_PARTIAL_OUTPUT	0x0000000E
-#define TEEC_MEMREF_PARTIAL_INOUT	0x0000000F
+#define TEEC_NONE 0x00000000
+#define TEEC_VALUE_INPUT 0x00000001
+#define TEEC_VALUE_OUTPUT 0x00000002
+#define TEEC_VALUE_INOUT 0x00000003
+#define TEEC_MEMREF_TEMP_INPUT 0x00000005
+#define TEEC_MEMREF_TEMP_OUTPUT 0x00000006
+#define TEEC_MEMREF_TEMP_INOUT 0x00000007
+#define TEEC_MEMREF_WHOLE 0x0000000C
+#define TEEC_MEMREF_PARTIAL_INPUT 0x0000000D
+#define TEEC_MEMREF_PARTIAL_OUTPUT 0x0000000E
+#define TEEC_MEMREF_PARTIAL_INOUT 0x0000000F
 
 /* Session Login Methods (client api) */
-#define TEEC_LOGIN_PUBLIC		0x00000000
-#define TEEC_LOGIN_USER			0x00000001
-#define TEEC_LOGIN_GROUP		0x00000002
-#define TEEC_LOGIN_APPLICATION		0x00000004
-#define TEEC_LOGIN_USER_APPLICATION	0x00000005
-#define TEEC_LOGIN_GROUP_APPLICATION	0x00000006
+#define TEEC_LOGIN_PUBLIC 0x00000000
+#define TEEC_LOGIN_USER 0x00000001
+#define TEEC_LOGIN_GROUP 0x00000002
+#define TEEC_LOGIN_APPLICATION 0x00000004
+#define TEEC_LOGIN_USER_APPLICATION 0x00000005
+#define TEEC_LOGIN_GROUP_APPLICATION 0x00000006
 
 /*!
  * \brief TEEC_TempMemoryReference A Temporary memorry Reference as used by \sa TEEC_Operation
  */
-typedef struct {
+typedef struct
+{
 	void *buffer; /*!< Pointer to the first byte of a buffer that needs to be referenced */
 	size_t size;  /*!< Size of the referenced memory region */
 } TEEC_TempMemoryReference;
@@ -64,24 +65,27 @@ typedef struct {
 /*!
  * \brief TEEC_RegisteredMemoryReference Uses a pre-registered memory or pre-allocated memory block
  */
-typedef struct {
-	TEEC_SharedMemory *parent;  /*!< Either a whole or partial memory reference */
-	size_t size;                /*!< The size of the referenced memory region, in bytes */
-	size_t offset;              /*!< The offset in bytes of the referenced memory region */
+typedef struct
+{
+	TEEC_SharedMemory *parent; /*!< Either a whole or partial memory reference */
+	size_t size;		   /*!< The size of the referenced memory region, in bytes */
+	size_t offset;		   /*!< The offset in bytes of the referenced memory region */
 } TEEC_RegisteredMemoryReference;
 
 /*!
  * \brief TEEC_Value Defines a paramater that is not referencing shared memory
  */
-typedef struct {
-	uint32_t a;  /*!< Paramater meaning is defined by the protocol between TA and Client */
-	uint32_t b;  /*!< Paramater meaning is defined by the protocol between TA and Client */
+typedef struct
+{
+	uint32_t a; /*!< Paramater meaning is defined by the protocol between TA and Client */
+	uint32_t b; /*!< Paramater meaning is defined by the protocol between TA and Client */
 } TEEC_Value;
 
 /*!
  * \brief TEEC_Parameter Defines a parameter of a \sa TEEC_Operation
  */
-typedef union {
+typedef union
+{
 	TEEC_TempMemoryReference tmpref;
 	TEEC_RegisteredMemoryReference memref;
 	TEEC_Value value;
@@ -90,7 +94,8 @@ typedef union {
 /*!
  * \brief TEEC_Operation Defines the payload of either an open session or invoke command
  */
-typedef struct {
+typedef struct
+{
 	uint32_t started;    /*!< Must set to zero if the client may try to cancel the operation */
 	uint32_t paramTypes; /*!< Encodes the type of each paramater that is being transfered */
 	TEEC_Parameter params[4]; /*!< an array of 4 possible paramaters to share with TA */
@@ -202,7 +207,7 @@ void TEEC_RequestCancellation(TEEC_Operation *operation);
  * \param param3Type Type of parameter 3
  * \return a uint32_t value that can be used in the operation to define the param types
  */
-#define TEEC_PARAM_TYPES(param0Type, param1Type, param2Type, param3Type) \
+#define TEEC_PARAM_TYPES(param0Type, param1Type, param2Type, param3Type)                           \
 	((param0Type) | ((param1Type) << 4) | ((param2Type) << 8) | ((param3Type) << 12))
 
 /*!

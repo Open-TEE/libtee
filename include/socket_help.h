@@ -20,7 +20,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-struct control_fd {
+struct control_fd
+{
 	struct cmsghdr header;
 	int fd;
 };

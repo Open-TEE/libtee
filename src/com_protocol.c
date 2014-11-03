@@ -59,6 +59,33 @@ static int read_iov_element(int fd, struct iovec *iov)
 	return read_bytes;
 }
 
+static int wind_fd_next_start(int fd)
+{
+	/* TODO: This function only emtying socket and due that message can be lost!!
+	 *
+	 * Use IOCTL call to find out data in socket, then peek and find next starting point */
+
+	char tmp[256];
+	int read_bytes;
+
+	while (1) {
+		read_bytes = read(fd, &tmp, 256);
+		if (read_bytes == -1 && errno == EINTR) {
+			continue;
+		} else {
+			OT_LOG(LOG_ERR, "read error")
+			return -1;
+		}
+
+		if (read_bytes == 256)
+			continue;
+		else
+			break;
+	}
+
+	return 1; /* This function should only call in com_recv_msg function */
+}
+
 int com_recv_msg(int sockfd, void **msg, int *msg_len)
 {
 	struct iovec iov[ELEMENTS_IN_MESSAGE];
@@ -87,7 +114,7 @@ int com_recv_msg(int sockfd, void **msg, int *msg_len)
 	/* Transport information read. Verify bit sequence */
 	if (com_recv_trans_info.start != COM_MSG_START) {
 		OT_LOG(LOG_ERR, "Read data is not beginning correctly");
-		ret = 1;
+		ret = wind_fd_next_start(sockfd);
 		goto err;
 	}
 

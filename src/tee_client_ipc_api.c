@@ -177,6 +177,7 @@ err_1:
 void TEEC_FinalizeContext(TEEC_Context *context)
 {
 	struct com_msg_ca_finalize_constex fin_con_msg;
+	void *tmp = NULL;
 
 	if (!context || context->init != INITIALIZED)
 		return;
@@ -192,8 +193,22 @@ void TEEC_FinalizeContext(TEEC_Context *context)
 		goto err;
 	}
 
-	com_send_msg(context->sockfd, &fin_con_msg, sizeof(struct com_msg_ca_finalize_constex));
+	/* Message filled. Send message */
+	if (com_send_msg(context->sockfd, &fin_con_msg,
+			 sizeof(struct com_msg_ca_finalize_constex)) !=
+	    sizeof(struct com_msg_ca_finalize_constex)) {
+		OT_LOG(LOG_ERR, "Failed to send message TEE");
+		goto unlock;
+	}
 
+	/* We are not actually receiving any data from TEE. This call is here for blocking
+	 * purpose. It is preventing closing this side socket before TEE closes connection. With
+	 * this it is easier segregate expected disconnection and not expected disconnection.
+	 * This blocking will end when TEE closes its side socket. */
+	com_recv_msg(context->sockfd, &tmp, NULL);
+	free(tmp);
+
+unlock:
 	if (pthread_mutex_unlock(&context->mutex))
 		OT_LOG(LOG_ERR, "Failed to unlock mutex")
 
@@ -331,6 +346,7 @@ err_msg:
 void TEEC_CloseSession(TEEC_Session *session)
 {
 	struct com_msg_close_session close_msg;
+	void *tmp = NULL;
 
 	if (!session || session->init != INITIALIZED) {
 		OT_LOG(LOG_ERR, "Session NULL or not initialized");
@@ -350,9 +366,16 @@ void TEEC_CloseSession(TEEC_Session *session)
 
 	/* Message filled. Send message */
 	if (com_send_msg(session->sockfd, &close_msg, sizeof(struct com_msg_close_session)) !=
-	    sizeof(struct com_msg_close_session))
+	    sizeof(struct com_msg_close_session)) {
 		OT_LOG(LOG_ERR, "Failed to send message TEE");
+		goto unlock;
+	}
 
+	/* See explanation in TEEC_FinalizeContext() */
+	com_recv_msg(session->sockfd, &tmp, NULL);
+	free(tmp);
+
+unlock:
 	if (pthread_mutex_unlock(&session->mutex))
 		OT_LOG(LOG_ERR, "Failed to unlock mutex")
 

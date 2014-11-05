@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_217449ce",
+        "filename": "src/tee_client_ipc_api.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-11-05T09:27:58Z",
+      "side": 1,
+      "message": "what happens if you just read a valid 16 bytes?",
+      "range": {
+        "startLine": 48,
+        "startChar": 5,
+        "endLine": 48,
+        "endChar": 6
+      },
+      "revId": "6f68da73eae08c94eab8098e7dceaaa4df05a63d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

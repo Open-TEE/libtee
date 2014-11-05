@@ -22,6 +22,30 @@
       "revId": "6f68da73eae08c94eab8098e7dceaaa4df05a63d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_415ea546",
+        "filename": "src/tee_client_ipc_api.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1000804
+      },
+      "writtenOn": "2014-11-05T09:37:12Z",
+      "side": 1,
+      "message": "This need to be fixed. If read 16, we should call again read function.",
+      "parentUuid": "7a6b29fe_217449ce",
+      "range": {
+        "startLine": 48,
+        "startChar": 5,
+        "endLine": 48,
+        "endChar": 6
+      },
+      "revId": "6f68da73eae08c94eab8098e7dceaaa4df05a63d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }

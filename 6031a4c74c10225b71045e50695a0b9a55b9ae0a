@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_a8f8357d",
+        "filename": "src/com_protocol.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1000804
+      },
+      "writtenOn": "2014-11-08T09:44:16Z",
+      "side": 1,
+      "message": "Need to replace with this:\n\nif (read_bytes \u003d\u003d -1) {\n\n\tif (errno \u003d\u003d EINTR)\n\t\tcontinue;\n\n\tOT_LOG(LOG_ERR, \"read error\");\n\treturn -1;\n\n} else if (read_bytes \u003d\u003d 0) {\n\tOT_LOG(LOG_ERR, \"read error\");\n\terrno \u003d EPIPE;\n\treturn -1;\n}",
+      "revId": "6031a4c74c10225b71045e50695a0b9a55b9ae0a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

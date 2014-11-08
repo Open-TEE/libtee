@@ -16,6 +16,24 @@
       "revId": "6031a4c74c10225b71045e50695a0b9a55b9ae0a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_c8ef71af",
+        "filename": "src/com_protocol.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-11-08T09:48:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a6b29fe_a8f8357d",
+      "revId": "6031a4c74c10225b71045e50695a0b9a55b9ae0a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }

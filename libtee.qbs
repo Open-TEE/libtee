@@ -22,7 +22,6 @@ DynamicLibrary {
         "include/tee_shared_data_types.h",
         "src/com_protocol.c",
         "src/socket_help.c",
-        "src/tee_client_ipc_api.c",
         "src/tee_client_mem_api.c",
         "src/utils.h",
         "src/utils.c",

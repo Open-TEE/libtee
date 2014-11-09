@@ -14,14 +14,59 @@
 ** limitations under the License.                                           **
 *****************************************************************************/
 
+#include <errno.h>
 #include <fcntl.h>
+#include <pthread.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <sys/mman.h>
+#include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
 
+#include "com_protocol.h"
+#include "socket_help.h"
 #include "tee_client_api.h"
+#include "tee_logging.h"
 #include "utils.h"
+
+/* TODO fix this to point to the correct location */
+const char *sock_path = "/tmp/open_tee_sock";
+
+/* Mutex is used when write function occur to FD which is connected to TEE */
+pthread_mutex_t fd_write_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+enum mem_type {
+	REGISTERED = 0,
+	ALLOCATED = 0xa110ca7e
+};
+
+struct shared_mem_internal {
+	char *shm_uuid;		  /*!< Pointer to the shared memory object that has been created */
+	void *reg_address;	/*!< store the mmap address that is used for registered mem */
+	enum mem_type type;       /*!< The type of the memory, i.e. allocated or registered */
+};
+
+/*!
+ * \brief The context_internal struct
+ * The implementation defined part of the TEEC_Context
+ */
+struct context_internal {
+	pthread_mutex_t mutex;
+	int sockfd;
+	uint8_t init;
+};
+
+/*!
+ * \brief The session_internal struct
+ * The implementation defined part of the TEEC_Session
+ */
+struct session_internal {
+	pthread_mutex_t mutex;
+	uint64_t sess_id;
+	int sockfd;
+	uint8_t init;
+};
 
 /*!
  * \brief create_shared_mem_internal
@@ -39,15 +84,22 @@ static TEEC_Result create_shared_mem_internal(TEEC_Context *context, TEEC_Shared
 	int fd;
 	void *address = NULL;
 	TEEC_Result ret = TEEC_SUCCESS;
+	struct shared_mem_internal *internal_imp;
 
-	if (!context || !shared_mem || shared_mem->init == INITIALIZED)
+	if (!context || !shared_mem)
 		return TEEC_ERROR_BAD_PARAMETERS;
+
+	internal_imp = malloc(sizeof(struct shared_mem_internal));
+	if (!internal_imp) {
+		OT_LOG(LOG_ERR, "Failed to allocate memory for Shared memory");
+		return TEEC_ERROR_OUT_OF_MEMORY;
+	}
 
 	/* The name of the shm object files should be in the format "/somename\0"
 	 * so we will generate a random name that matches this format based of of
 	 * a UUID
 	 */
-	if (generate_random_path(&shared_mem->shm_uuid) == -1)
+	if (generate_random_path(&internal_imp->shm_uuid) == -1)
 		return TEEC_ERROR_OUT_OF_MEMORY;
 
 	if ((shared_mem->flags & TEEC_MEM_OUTPUT) && !(shared_mem->flags & TEEC_MEM_INPUT))
@@ -55,7 +107,7 @@ static TEEC_Result create_shared_mem_internal(TEEC_Context *context, TEEC_Shared
 	else
 		flag |= O_RDWR;
 
-	fd = shm_open(shared_mem->shm_uuid, (flag | O_CREAT | O_EXCL),
+	fd = shm_open(internal_imp->shm_uuid, (flag | O_CREAT | O_EXCL),
 		      (S_IRUSR | S_IRGRP | S_IWUSR | S_IWGRP));
 	if (fd == -1) {
 		ret = TEEC_ERROR_GENERIC;
@@ -87,21 +139,305 @@ static TEEC_Result create_shared_mem_internal(TEEC_Context *context, TEEC_Shared
 	if (type == ALLOCATED)
 		shared_mem->buffer = address;
 	else if (type == REGISTERED)
-		shared_mem->reg_address = address;
+		internal_imp->reg_address = address;
 
-	// TODO we must register the shared memory with the context
-	shared_mem->parent_ctx = context;
-	shared_mem->type = type;
-	shared_mem->init = INITIALIZED;
+	internal_imp->type = type;
+	shared_mem->imp = internal_imp;
 
 	return TEEC_SUCCESS;
 
 errorTruncate:
-	shm_unlink(shared_mem->shm_uuid);
+	shm_unlink(internal_imp->shm_uuid);
 
 errorExit:
-	free(shared_mem->shm_uuid);
+	free(internal_imp->shm_uuid);
+	free(internal_imp);
 	return ret;
+}
+
+/*!
+ * \brief copy_tee_operation_to_internal
+ * Convert the TEE operation into a generic format do that it can be sent to the TA
+ * \param operation The TEE operation format
+ * \param internal_op the communication protocol format
+ * \return 0 on success
+ */
+static int copy_tee_operation_to_internal(TEEC_Operation *operation,
+					  struct com_msg_operation *internal_op)
+{
+	int i;
+
+	for (i = 0; i < 4; i++) {
+		if (operation->paramTypes[i] == TEEC_NONE) {
+			continue;
+		} else if (operation->paramTypes[i] == TEEC_VALUE_INPUT ||
+			   operation->paramTypes[i] == TEEC_VALUE_INOUT) {
+			memcpy(internal_op->params[i].value,
+			       operation->params[i].value, sizeof(TEEC_Value));
+		} else if (operation->paramTypes[i] == TEEC_MEMREF_TEMP_INPUT ||
+			   operation->paramTypes[i] == TEEC_MEMREF_TEMP_INOUT ||
+			   operation->paramTypes[i] == TEEC_MEMREF_TEMP_OUTPUT) {
+
+		}
+	}
+	return 0;
+}
+
+static int send_msg(int fd, void *msg, int msg_len, pthread_mutex_t mutex)
+{
+	int ret;
+
+	if (pthread_mutex_lock(&mutex)) {
+		OT_LOG(LOG_ERR, "Failed to lock mutex");
+		return -1;
+	}
+
+	ret = com_send_msg(fd, msg, msg_len);
+
+	if (pthread_mutex_unlock(&mutex))
+		OT_LOG(LOG_ERR, "Failed to unlock mutex")
+
+	return ret;
+}
+
+/*!
+ * \brief wait_socket_close
+ * This function is not interested any data that is comming from socket.
+ * It only breaks it while loop, when error occured.
+ * \param fd
+ */
+static void wait_socket_close(int fd)
+{
+	const int tmp_len = 8;
+	char tmp[tmp_len];
+	int read_bytes;
+
+	while (1) {
+		read_bytes = read(fd, &tmp, tmp_len);
+		if (read_bytes == -1) {
+
+			if (errno == EINTR)
+				continue;
+
+			break;
+
+		} else if (read_bytes == 0) {
+			/* If socket other end is closed before this function read is called,
+			 * read returns zero */
+			break;
+
+		} else {
+			continue;
+		}
+	}
+}
+
+static bool get_return_vals_from_err_msg(void *msg, TEE_Result *err_name, uint32_t *err_origin)
+{
+	uint8_t msg_name;
+
+	if (!msg) {
+		OT_LOG(LOG_ERR, "msg NULL");
+		return false;
+	}
+
+	if (com_get_msg_name(msg, &msg_name)) {
+		OT_LOG(LOG_ERR, "Failed to retreave message name");
+		return false;
+	}
+
+	if (msg_name != COM_MSG_NAME_ERROR) {
+		OT_LOG(LOG_ERR, "Not an error message");
+		return false;
+	}
+
+	if (err_name)
+		*err_name = ((struct com_msg_error *) msg)->ret;
+
+	if (err_origin)
+		*err_origin = ((struct com_msg_error *) msg)->ret_origin;
+
+	return true;
+}
+
+static bool verify_msg_name_and_type(void *msg, uint8_t expected_name, uint8_t expected_type)
+{
+	uint8_t msg_name, msg_type;
+
+	if (!msg) {
+		OT_LOG(LOG_ERR, "msg NULL");
+		return false;
+	}
+
+	if (com_get_msg_name(msg, &msg_name) || com_get_msg_type(msg, &msg_type)) {
+		OT_LOG(LOG_ERR, "Failed to retreave message name and type");
+		return false;
+	}
+
+	if (msg_name != expected_name) {
+		OT_LOG(LOG_ERR, "Not expexted name of the message");
+		return false;
+	}
+
+	if (msg_type != expected_type) {
+		OT_LOG(LOG_ERR, "Not expexted type of the message");
+		return false;
+	}
+
+	return true;
+}
+
+TEEC_Result TEEC_InitializeContext(const char *name, TEEC_Context *context)
+{
+	int com_ret;
+	TEE_Result ret = TEEC_SUCCESS;
+	struct sockaddr_un sock_addr;
+	struct com_msg_ca_init_tee_conn init_msg;
+	struct com_msg_ca_init_tee_conn *recv_msg = NULL;
+	struct context_internal *inter_imp = NULL;
+
+	/* We ignore the name as we are only communicating with a single instance of the emulator */
+	(void)name;
+
+	if (!context) {
+		OT_LOG(LOG_ERR, "Contex NULL or initialized")
+		return TEEC_ERROR_BAD_PARAMETERS;
+	}
+
+	inter_imp = malloc(sizeof(struct context_internal));
+	if (!inter_imp) {
+		OT_LOG(LOG_ERR, "Failed to create space for context");
+		return TEEC_ERROR_OUT_OF_MEMORY;
+	}
+
+
+	/* Init context mutex */
+	if (pthread_mutex_init(&inter_imp->mutex, NULL)) {
+		OT_LOG(LOG_ERR, "Failed to init mutex")
+		return TEEC_ERROR_GENERIC;
+	}
+
+	inter_imp->sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+	if (inter_imp->sockfd == -1) {
+		OT_LOG(LOG_ERR, "Socket creation failed")
+		ret = TEEC_ERROR_COMMUNICATION;
+		goto err_1;
+	}
+
+	memset(&sock_addr, 0, sizeof(struct sockaddr_un));
+	strncpy(sock_addr.sun_path, sock_path, sizeof(sock_addr.sun_path) - 1);
+	sock_addr.sun_family = AF_UNIX;
+
+	if (connect(inter_imp->sockfd,
+		    (struct sockaddr *)&sock_addr, sizeof(struct sockaddr_un)) == -1) {
+		OT_LOG(LOG_ERR, "Failed to connect to TEE")
+		ret = TEEC_ERROR_COMMUNICATION;
+		goto err_2;
+	}
+
+	/* Fill init message */
+	init_msg.msg_hdr.msg_name = COM_MSG_NAME_CA_INIT_CONTEXT;
+	init_msg.msg_hdr.msg_type = COM_TYPE_QUERY;
+	init_msg.msg_hdr.sess_id = 0;     /* ignored */
+
+	/* Send init message to TEE */
+	if (send_msg(inter_imp->sockfd, &init_msg, sizeof(struct com_msg_ca_init_tee_conn),
+		     fd_write_mutex) != sizeof(struct com_msg_ca_init_tee_conn)) {
+		OT_LOG(LOG_ERR, "Failed to send context initialization msg");
+		ret = TEEC_ERROR_COMMUNICATION;
+		goto err_2;
+	}
+
+	/* Wait for answer */
+	com_ret = com_recv_msg(inter_imp->sockfd, (void **)(&recv_msg), NULL);
+
+	/* If else is only for correct log message */
+	if (com_ret == -1) {
+		OT_LOG(LOG_ERR, "Socket error");
+		ret = TEEC_ERROR_COMMUNICATION;
+		goto err_2;
+
+	} else if (com_ret > 0) {
+		OT_LOG(LOG_ERR, "Received bad message, discarding");
+		ret = TEEC_ERROR_COMMUNICATION;
+		goto err_2;
+	}
+
+	/* Check received message */
+	if (!verify_msg_name_and_type(recv_msg, COM_MSG_NAME_CA_INIT_CONTEXT, COM_TYPE_RESPONSE)) {
+		ret = TEEC_ERROR_COMMUNICATION;
+		goto err_2;
+	}
+
+	ret = recv_msg->ret;
+	free(recv_msg);
+
+	context->imp = inter_imp;
+
+	return ret;
+
+err_2:
+	close(inter_imp->sockfd);
+err_1:
+	pthread_mutex_destroy(&inter_imp->mutex);
+	free(recv_msg);
+	free(inter_imp);
+	context->imp = NULL;
+	return ret;
+}
+
+void TEEC_FinalizeContext(TEEC_Context *context)
+{
+	struct com_msg_ca_finalize_constex fin_con_msg;
+	struct context_internal *inter_imp;
+
+	if (!context)
+		return;
+
+	inter_imp = (struct context_internal *)context->imp;
+	if (!inter_imp)
+		return;
+
+	fin_con_msg.msg_hdr.msg_name = COM_MSG_NAME_CA_FINALIZ_CONTEXT;
+	fin_con_msg.msg_hdr.msg_type = COM_TYPE_QUERY;
+	fin_con_msg.msg_hdr.sess_id = 0;     /* ignored */
+
+	if (pthread_mutex_lock(&inter_imp->mutex)) {
+		OT_LOG(LOG_ERR, "Failed to lock mutex")
+		goto err;
+	}
+
+	/* Message filled. Send message */
+	if (send_msg(inter_imp->sockfd, &fin_con_msg,
+			 sizeof(struct com_msg_ca_finalize_constex), fd_write_mutex) !=
+	    sizeof(struct com_msg_ca_finalize_constex)) {
+		OT_LOG(LOG_ERR, "Failed to send message TEE");
+		goto unlock;
+	}
+
+	/* We are not actually receiving any data from TEE. This call is here for blocking
+	 * purpose. It is preventing closing this side socket before TEE closes connection. With
+	 * this it is easier segregate expected disconnection and not expected disconnection.
+	 * This blocking will end when TEE closes its side socket. */
+	wait_socket_close(inter_imp->sockfd);
+
+unlock:
+	if (pthread_mutex_unlock(&inter_imp->mutex))
+		OT_LOG(LOG_ERR, "Failed to unlock mutex")
+
+err:
+	inter_imp->init = 0;
+	close(inter_imp->sockfd);
+	while (pthread_mutex_destroy(&inter_imp->mutex)) {
+		if (errno != EBUSY) {
+			OT_LOG(LOG_ERR, "Failed to destroy mutex")
+			break;
+		}
+		/* Busy loop */
+	}
+
+	free(inter_imp);
+	context->imp = NULL;
 }
 
 TEEC_Result TEEC_RegisterSharedMemory(TEEC_Context *context, TEEC_SharedMemory *shared_mem)
@@ -120,26 +456,279 @@ TEEC_Result TEEC_AllocateSharedMemory(TEEC_Context *context, TEEC_SharedMemory *
 void TEEC_ReleaseSharedMemory(TEEC_SharedMemory *shared_mem)
 {
 	void *address;
+	struct shared_mem_internal *internal_imp = NULL;
 
-	if (!shared_mem || shared_mem->init != INITIALIZED)
+	if (!shared_mem)
+		return;
+
+	internal_imp = (struct shared_mem_internal *)shared_mem->imp;
+	if (!internal_imp)
 		return;
 
 	/* If we allocated the memory free the buffer, other wise if it is just registered
 	 * the buffer belongs to the Client Application, so we should not free it, instead
 	 * we should free the mmap'd region that was mapped to support it
 	 */
-	if (shared_mem->type == ALLOCATED)
+	if (internal_imp->type == ALLOCATED)
 		address = shared_mem->buffer;
 	else
-		address = shared_mem->reg_address;
+		address = internal_imp->reg_address;
 
 	/* Remove the memory mapped region and the shared memory */
 	munmap(address, shared_mem->size);
-	shm_unlink(shared_mem->shm_uuid);
-	free(shared_mem->shm_uuid);
+	shm_unlink(internal_imp->shm_uuid);
+	free(internal_imp->shm_uuid);
+	free(internal_imp);
+	shared_mem->imp = NULL;
 
-	// TODO we must unregister the shared memory from the Context
-
-	shared_mem->init = 0xFF;
 	return;
+}
+
+TEEC_Result TEEC_OpenSession(TEEC_Context *context, TEEC_Session *session,
+			     const TEEC_UUID *destination, uint32_t connection_method,
+			     void *connection_data, TEEC_Operation *operation,
+			     uint32_t *return_origin)
+{
+	struct com_msg_open_session open_msg;
+	struct com_msg_open_session *recv_msg = NULL;
+	int com_ret = 0;
+	TEEC_Result result = TEEC_SUCCESS;
+	struct context_internal *context_internal = NULL;
+	struct session_internal *session_internal = NULL;
+
+	/* Not used on purpose. Reminding about implement memory stuff. (only UUID is handeled) */
+	connection_method = connection_method;
+	connection_data = connection_data;
+	operation = operation;
+
+	if (!context || !session) {
+		OT_LOG(LOG_ERR, "Context or session NULL or in improper state");
+		if (return_origin)
+			*return_origin = TEE_ORIGIN_API;
+		return TEEC_ERROR_BAD_PARAMETERS;
+	}
+
+	context_internal = (struct context_internal *)context->imp;
+
+	session_internal = malloc(sizeof(struct session_internal));
+	if (!session_internal) {
+		OT_LOG(LOG_ERR, "Failed to create memory for session");
+		return TEEC_ERROR_OUT_OF_MEMORY;
+	}
+
+	/* Fill open msg */
+
+	/* Header section */
+	open_msg.msg_hdr.msg_name = COM_MSG_NAME_OPEN_SESSION;
+	open_msg.msg_hdr.msg_type = COM_TYPE_QUERY;
+	open_msg.msg_hdr.sess_id = 0; /* manager will generate */
+
+	/* UUID */
+	memcpy(&open_msg.uuid, destination, sizeof(TEEC_UUID));
+
+	/* ## TODO: Operation parameters and rest params ## */
+
+	if (pthread_mutex_lock(&context_internal->mutex)) {
+		OT_LOG(LOG_ERR, "Failed to lock mutex");
+		if (return_origin)
+			*return_origin = TEE_ORIGIN_API;
+		return TEEC_ERROR_GENERIC;
+	}
+
+	/* Message filled. Send message */
+	if (send_msg(context_internal->sockfd, &open_msg, sizeof(struct com_msg_open_session),
+		     fd_write_mutex) != sizeof(struct com_msg_open_session)) {
+		OT_LOG(LOG_ERR, "Failed to send message TEE");
+		goto err_com;
+	}
+
+	/* Wait for answer */
+	com_ret = com_recv_msg(context_internal->sockfd, (void **)(&recv_msg), NULL);
+	if (com_ret == -1) {
+		OT_LOG(LOG_ERR, "Socket error");
+		goto err_com;
+
+	} else if (com_ret > 0) {
+		OT_LOG(LOG_ERR, "Received bad message, discarding");
+		/* TODO: Do what? End session? Problem: We do not know what message was
+		 * incomming. Error or Response to open session message. Worst case situation is
+		 * that task is complited, but message delivery only failed. Just report
+		 * communication error and dump problem "upper layer". */
+		goto err_com;
+	}
+
+	if (pthread_mutex_unlock(&context_internal->mutex))
+		OT_LOG(LOG_ERR, "Failed to unlock mutex"); /* No action */
+
+	/* Check received message */
+	if (!verify_msg_name_and_type(recv_msg, COM_MSG_NAME_OPEN_SESSION, COM_TYPE_RESPONSE)) {
+		if (!get_return_vals_from_err_msg(recv, &result, return_origin))
+			goto err_com;
+
+		goto err_msg;
+	}
+
+	/* Message received succesfully */
+	result = recv_msg->return_code_open_session;
+	if (return_origin)
+		*return_origin = recv_msg->return_origin;
+
+	/* ## TODO/NOTE: Take operation parameter from message! ## */
+
+	session_internal->sockfd = context_internal->sockfd;
+	session_internal->mutex = context_internal->mutex;
+	session_internal->sess_id = recv_msg->msg_hdr.sess_id;
+	session->imp = session_internal;
+	free(recv_msg);
+	return result;
+
+err_com:
+	if (return_origin)
+		*return_origin = TEE_ORIGIN_COMMS;
+	result = TEEC_ERROR_COMMUNICATION;
+
+err_msg:
+	if (pthread_mutex_unlock(&context_internal->mutex))
+		OT_LOG(LOG_ERR, "Failed to unlock mutex");
+
+	free(recv_msg);
+	free(session_internal);
+	session->imp = NULL;
+	return result;
+}
+
+void TEEC_CloseSession(TEEC_Session *session)
+{
+	struct com_msg_close_session close_msg;
+	struct session_internal *internal_imp = NULL;
+
+	if (!session) {
+		OT_LOG(LOG_ERR, "Session NULL or not initialized");
+		return;
+	}
+
+	internal_imp = (struct session_internal *)session->imp;
+	if (!internal_imp)
+		return;
+
+	close_msg.msg_hdr.msg_name = COM_MSG_NAME_CLOSE_SESSION;
+	close_msg.msg_hdr.msg_type = COM_TYPE_QUERY;
+	close_msg.msg_hdr.sess_id = internal_imp->sess_id;
+
+	/* Message filled. Send message */
+	if (pthread_mutex_lock(&internal_imp->mutex)) {
+		OT_LOG(LOG_ERR, "Failed to lock mutex")
+		goto err;
+	}
+
+	/* Message filled. Send message */
+	if (send_msg(internal_imp->sockfd, &close_msg, sizeof(struct com_msg_close_session),
+		     fd_write_mutex) != sizeof(struct com_msg_close_session))
+		OT_LOG(LOG_ERR, "Failed to send message TEE");
+
+	if (pthread_mutex_unlock(&internal_imp->mutex))
+		OT_LOG(LOG_ERR, "Failed to unlock mutex")
+
+err:
+	free(internal_imp);
+	session->imp = NULL;
+}
+
+TEEC_Result TEEC_InvokeCommand(TEEC_Session *session, uint32_t command_id,
+			       TEEC_Operation *operation, uint32_t *return_origin)
+{
+	struct com_msg_invoke_cmd invoke_msg;
+	struct com_msg_invoke_cmd *recv_msg = NULL;
+	int com_ret = 0;
+	TEEC_Result result = TEEC_SUCCESS;
+	struct session_internal *session_internal;
+
+	command_id = command_id; /* Not used on purpose. Reminding about implement memory stuff */
+
+	if (!session || !operation) {
+		OT_LOG(LOG_ERR, "session or operation NULL or session not initialized")
+		if (return_origin)
+			*return_origin = TEE_ORIGIN_API;
+		return TEEC_ERROR_BAD_PARAMETERS;
+	}
+
+	session_internal = (struct session_internal *)session->imp;
+	if (!session_internal)
+		return TEEC_ERROR_BAD_PARAMETERS;
+
+	/* Fill message */
+	invoke_msg.msg_hdr.msg_name = COM_MSG_NAME_INVOKE_CMD;
+	invoke_msg.msg_hdr.msg_type = COM_TYPE_QUERY;
+	invoke_msg.msg_hdr.sess_id = session_internal->sess_id;
+
+	/* ## TODO/NOTE: Map operation to message! ## */
+
+	/* Message filled. Send message */
+	if (pthread_mutex_lock(&session_internal->mutex)) {
+		OT_LOG(LOG_ERR, "Failed to lock mutex");
+		if (return_origin)
+			*return_origin = TEE_ORIGIN_API;
+		return TEEC_ERROR_GENERIC;
+	}
+
+	/* Message filled. Send message */
+	if (send_msg(session_internal->sockfd, &invoke_msg,
+		     sizeof(struct com_msg_invoke_cmd), fd_write_mutex) !=
+	    sizeof(struct com_msg_invoke_cmd)) {
+		OT_LOG(LOG_ERR, "Failed to send message TEE")
+		goto err_com_1;
+	}
+
+	/* Wait for answer */
+	com_ret = com_recv_msg(session_internal->sockfd, (void **)(&recv_msg), NULL);
+	if (com_ret == -1) {
+		OT_LOG(LOG_ERR, "Socket error")
+		goto err_com_1;
+	} else if (com_ret > 0) {
+		OT_LOG(LOG_ERR, "Received bad message, discarding")
+		/* TODO: Do what? End session? Problem: We do not know what message was
+		 * incomming. Error or Response to invoke cmd message. Worst case situation is
+		 * that task is complited, but message delivery only failed. For now, just report
+		 * communication error and dump problem "upper layer". */
+		goto err_com_1;
+	}
+
+	if (pthread_mutex_unlock(&session_internal->mutex))
+		OT_LOG(LOG_ERR, "Failed to unlock mutex"); /* No action */
+
+	/* Check received message */
+	if (!verify_msg_name_and_type(recv_msg, COM_MSG_NAME_INVOKE_CMD, COM_TYPE_RESPONSE)) {
+		if (!get_return_vals_from_err_msg(recv, &result, return_origin))
+			goto err_com_2;
+
+		goto err_msg;
+	}
+
+	/* Success. Let see result */
+	result = recv_msg->return_code;
+	if (return_origin)
+		*return_origin = recv_msg->return_origin;
+
+	/* ## TODO/NOTE: Take operation parameter from message! ## */
+
+	free(recv_msg);
+	return result;
+
+err_com_1:
+	if (pthread_mutex_unlock(&session_internal->mutex))
+		OT_LOG(LOG_ERR, "Failed to unlock mutex");
+err_com_2:
+	if (return_origin)
+		*return_origin = TEE_ORIGIN_COMMS;
+	result = TEEC_ERROR_COMMUNICATION;
+err_msg:
+	free(recv_msg);
+	return result;
+}
+
+void TEEC_RequestCancellation(TEEC_Operation *operation)
+{
+	/* PLACEHOLDER */
+
+	operation = operation;
 }

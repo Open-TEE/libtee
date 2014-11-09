@@ -45,6 +45,7 @@
 #include <stdint.h>
 
 #include "tee_shared_data_types.h"
+#include "tee_client_api.h"
 
 /* clang-format off */
 /* Communication protocol message names */
@@ -100,6 +101,7 @@ struct com_msg_open_session {
 	TEE_Result return_code_create_entry;
 	TEE_Result return_code_open_session;
 	uint32_t return_origin;
+	TEEC_Operation *operation;
 
 	/* TODO: parameters */
 

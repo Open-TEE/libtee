@@ -19,9 +19,23 @@
 #include <sys/mman.h>
 #include <sys/un.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "tee_client_api.h"
 #include "utils.h"
+#include "tee_logging.h"
+
+
+enum mem_type {
+	REGISTERED = 0,
+	ALLOCATED = 0xa110ca7e
+};
+
+struct shared_mem_internal {
+	char *shm_uuid;		  /*!< Pointer to the shared memory object that has been created */
+	void *reg_address;	/*!< store the mmap address that is used for registered mem */
+	enum mem_type type;       /*!< The type of the memory, i.e. allocated or registered */
+};
 
 /*!
  * \brief create_shared_mem_internal
@@ -39,15 +53,22 @@ static TEEC_Result create_shared_mem_internal(TEEC_Context *context, TEEC_Shared
 	int fd;
 	void *address = NULL;
 	TEEC_Result ret = TEEC_SUCCESS;
+	struct shared_mem_internal *internal_imp;
 
-	if (!context || !shared_mem || shared_mem->init == INITIALIZED)
+	if (!context || !shared_mem)
 		return TEEC_ERROR_BAD_PARAMETERS;
+
+	internal_imp = malloc(sizeof(struct shared_mem_internal));
+	if (!internal_imp) {
+		OT_LOG(LOG_ERR, "Failed to allocate memory for Shared memory");
+		return TEEC_ERROR_OUT_OF_MEMORY;
+	}
 
 	/* The name of the shm object files should be in the format "/somename\0"
 	 * so we will generate a random name that matches this format based of of
 	 * a UUID
 	 */
-	if (generate_random_path(&shared_mem->shm_uuid) == -1)
+	if (generate_random_path(&internal_imp->shm_uuid) == -1)
 		return TEEC_ERROR_OUT_OF_MEMORY;
 
 	if ((shared_mem->flags & TEEC_MEM_OUTPUT) && !(shared_mem->flags & TEEC_MEM_INPUT))
@@ -55,7 +76,7 @@ static TEEC_Result create_shared_mem_internal(TEEC_Context *context, TEEC_Shared
 	else
 		flag |= O_RDWR;
 
-	fd = shm_open(shared_mem->shm_uuid, (flag | O_CREAT | O_EXCL),
+	fd = shm_open(internal_imp->shm_uuid, (flag | O_CREAT | O_EXCL),
 		      (S_IRUSR | S_IRGRP | S_IWUSR | S_IWGRP));
 	if (fd == -1) {
 		ret = TEEC_ERROR_GENERIC;
@@ -87,20 +108,19 @@ static TEEC_Result create_shared_mem_internal(TEEC_Context *context, TEEC_Shared
 	if (type == ALLOCATED)
 		shared_mem->buffer = address;
 	else if (type == REGISTERED)
-		shared_mem->reg_address = address;
+		internal_imp->reg_address = address;
 
-	// TODO we must register the shared memory with the context
-	shared_mem->parent_ctx = context;
-	shared_mem->type = type;
-	shared_mem->init = INITIALIZED;
+	internal_imp->type = type;
+	shared_mem->imp = internal_imp;
 
 	return TEEC_SUCCESS;
 
 errorTruncate:
-	shm_unlink(shared_mem->shm_uuid);
+	shm_unlink(internal_imp->shm_uuid);
 
 errorExit:
-	free(shared_mem->shm_uuid);
+	free(internal_imp->shm_uuid);
+	free(internal_imp);
 	return ret;
 }
 
@@ -120,26 +140,30 @@ TEEC_Result TEEC_AllocateSharedMemory(TEEC_Context *context, TEEC_SharedMemory *
 void TEEC_ReleaseSharedMemory(TEEC_SharedMemory *shared_mem)
 {
 	void *address;
+	struct shared_mem_internal *internal_imp = NULL;
 
-	if (!shared_mem || shared_mem->init != INITIALIZED)
+	if (!shared_mem)
+		return;
+
+	internal_imp = (struct shared_mem_internal *)shared_mem->imp;
+	if (!internal_imp)
 		return;
 
 	/* If we allocated the memory free the buffer, other wise if it is just registered
 	 * the buffer belongs to the Client Application, so we should not free it, instead
 	 * we should free the mmap'd region that was mapped to support it
 	 */
-	if (shared_mem->type == ALLOCATED)
+	if (internal_imp->type == ALLOCATED)
 		address = shared_mem->buffer;
 	else
-		address = shared_mem->reg_address;
+		address = internal_imp->reg_address;
 
 	/* Remove the memory mapped region and the shared memory */
 	munmap(address, shared_mem->size);
-	shm_unlink(shared_mem->shm_uuid);
-	free(shared_mem->shm_uuid);
+	shm_unlink(internal_imp->shm_uuid);
+	free(internal_imp->shm_uuid);
+	free(internal_imp);
+	shared_mem->imp = NULL;
 
-	// TODO we must unregister the shared memory from the Context
-
-	shared_mem->init = 0xFF;
 	return;
 }

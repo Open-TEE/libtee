@@ -22,6 +22,30 @@
       "revId": "60a334db698351067068b9ccfe81b7fbc505e452",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_d4029c0a",
+        "filename": "src/tee_client_api.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 713,
+      "author": {
+        "id": 1000804
+      },
+      "writtenOn": "2014-11-11T22:30:25Z",
+      "side": 1,
+      "message": "I think it is more informative if goto name is err_msg. This is used line 624.",
+      "parentUuid": "3a65312a_9408242f",
+      "range": {
+        "startLine": 713,
+        "startChar": 0,
+        "endLine": 713,
+        "endChar": 7
+      },
+      "revId": "60a334db698351067068b9ccfe81b7fbc505e452",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }

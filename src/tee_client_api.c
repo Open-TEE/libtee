@@ -682,9 +682,11 @@ TEEC_Result TEEC_OpenSession(TEEC_Context *context, TEEC_Session *session,
 	}
 
 	/* Message received succesfully */
-	result = recv_msg->return_code_open_session;
 	if (return_origin)
 		*return_origin = recv_msg->return_origin;
+	result = recv_msg->return_code_open_session;
+	if (result != TEE_SUCCESS)
+		goto err_ret;
 
 	/* copy back the response data contained in the operation */
 	if (operation)
@@ -707,6 +709,7 @@ err_com_2:
 		*return_origin = TEE_ORIGIN_COMMS;
 	result = TEEC_ERROR_COMMUNICATION;
 
+err_ret:
 err_msg:
 mutex_fail:
 	free(recv_msg);

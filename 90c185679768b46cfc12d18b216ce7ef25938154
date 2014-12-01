@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_28ac3ba0",
+        "filename": "include/com_protocol.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1000798
+      },
+      "writtenOn": "2014-12-01T11:48:09Z",
+      "side": 1,
+      "message": "The comment",
+      "range": {
+        "startLine": 208,
+        "startChar": 10,
+        "endLine": 209,
+        "endChar": 25
+      },
+      "revId": "90c185679768b46cfc12d18b216ce7ef25938154",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

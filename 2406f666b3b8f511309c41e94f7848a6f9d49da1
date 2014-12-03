@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_e9bb5270",
+        "filename": "Makefile.am",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-12-03T17:38:12Z",
+      "side": 1,
+      "message": "nit - trailing space",
+      "range": {
+        "startLine": 7,
+        "startChar": 18,
+        "endLine": 7,
+        "endChar": 19
+      },
+      "revId": "2406f666b3b8f511309c41e94f7848a6f9d49da1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_8993a6f9",
+        "filename": "configure.ac",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-12-03T17:38:12Z",
+      "side": 1,
+      "message": "add the following\n-Wall -Werror dist-bzip2",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 42
+      },
+      "revId": "2406f666b3b8f511309c41e94f7848a6f9d49da1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c9bc8e6f",
+        "filename": "configure.ac",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-12-03T17:38:12Z",
+      "side": 1,
+      "message": "from here",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 1
+      },
+      "revId": "2406f666b3b8f511309c41e94f7848a6f9d49da1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a9c14ae6",
+        "filename": "configure.ac",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-12-03T17:38:12Z",
+      "side": 1,
+      "message": "to here, can be deleted, or do we really have to check the contents of libc",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 14
+      },
+      "revId": "2406f666b3b8f511309c41e94f7848a6f9d49da1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e9a4f258",
+        "filename": "src/Makemodule.am",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-12-03T17:38:12Z",
+      "side": 1,
+      "message": "should we add these ?  Package config support and a symbols file?",
+      "revId": "2406f666b3b8f511309c41e94f7848a6f9d49da1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_09a05642",
+        "filename": "src/Makemodule.am",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-12-03T17:38:12Z",
+      "side": 1,
+      "message": "AM_CFLAGS \u003d -Wall -Wextra\n\nEXTRA_DIST \u003d libtee.sym",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 0
+      },
+      "revId": "2406f666b3b8f511309c41e94f7848a6f9d49da1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a99aea11",
+        "filename": "src/Makemodule.am",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2014-12-03T17:38:12Z",
+      "side": 1,
+      "message": "pkgconfigdir \u003d $(libdir)/pkgconfig\npkgconfig_DATA \u003d libtee.pc",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 0
+      },
+      "revId": "2406f666b3b8f511309c41e94f7848a6f9d49da1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

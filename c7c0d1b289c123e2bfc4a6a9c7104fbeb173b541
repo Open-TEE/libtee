@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_ff366102",
+        "filename": "Makefile.am",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002619
+      },
+      "writtenOn": "2014-12-06T10:13:56Z",
+      "side": 1,
+      "message": "Fixed trailing space",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 18
+      },
+      "revId": "c7c0d1b289c123e2bfc4a6a9c7104fbeb173b541",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_5f3ccde2",
+        "filename": "Makefile.am",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002619
+      },
+      "writtenOn": "2014-12-06T10:13:56Z",
+      "side": 1,
+      "message": "Moved definition of public headers to include/Makemodule.am",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 17
+      },
+      "revId": "c7c0d1b289c123e2bfc4a6a9c7104fbeb173b541",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7f2271ba",
+        "filename": "configure.ac",
+        "patchSetId": 3
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1002619
+      },
+      "writtenOn": "2014-12-06T10:13:56Z",
+      "side": 1,
+      "message": "Fixed indention to kernel style",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 1
+      },
+      "revId": "c7c0d1b289c123e2bfc4a6a9c7104fbeb173b541",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_3f41095b",
+        "filename": "configure.ac",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002619
+      },
+      "writtenOn": "2014-12-06T10:13:56Z",
+      "side": 1,
+      "message": "added dist-bzip2, hesitant to repeat the warning options here and in Makefile.am so suggesting we stick to defining default compiler flags in Makefile.am AM_CFLAGS.",
+      "range": {
+        "startLine": 7,
+        "startChar": 18,
+        "endLine": 7,
+        "endChar": 28
+      },
+      "revId": "c7c0d1b289c123e2bfc4a6a9c7104fbeb173b541",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_9f2595c4",
+        "filename": "configure.ac",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002619
+      },
+      "writtenOn": "2014-12-06T10:13:56Z",
+      "side": 1,
+      "message": "Do not probe for portability issues in configure unless the source code is prepared to deal with the results.",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 0
+      },
+      "revId": "c7c0d1b289c123e2bfc4a6a9c7104fbeb173b541",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_df2f1da0",
+        "filename": "src/Makemodule.am",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002619
+      },
+      "writtenOn": "2014-12-06T10:13:56Z",
+      "side": 1,
+      "message": "Unchanged, will add pkgconfig and symbol file distribution in separate commit",
+      "revId": "c7c0d1b289c123e2bfc4a6a9c7104fbeb173b541",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

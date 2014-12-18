@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a0b7d60_c33936da",
+        "filename": "src/tee_client_api.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 591,
+      "author": {
+        "id": 1000804
+      },
+      "writtenOn": "2014-12-18T11:36:18Z",
+      "side": 1,
+      "message": "This is not a bullet proof check. User can just set shared_mem-\u003eimp to NULL. Just preventng \"flagrant/accidental\" reusage.",
+      "revId": "73582254922b5bf9de444272544ab38b87a10176",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

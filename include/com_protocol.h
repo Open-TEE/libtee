@@ -64,6 +64,12 @@
 #define COM_MSG_NAME_OPEN_SHM_REGION		0x0C
 #define COM_MSG_NAME_UNLINK_SHM_REGION		0x0D
 #define COM_MSG_NAME_MANAGER_TERMINATION	0x0E
+#define COM_MSG_NAME_TUI_DISPLAY_MSG		0x0F
+#define COM_MSG_NAME_TUI_CHECK_TEXT_FORMAT      0x10
+#define COM_MSG_NAME_TUI_GET_SCREEN_INFO        0x11
+#define COM_MSG_NAME_TUI_INIT_SESSION           0x12
+#define COM_MSG_NAME_TUI_CLOSE_SESSION          0x13
+#define COM_MSG_NAME_TUI_DISPLAY_SCREEN         0x14
 
 /* Request is used internally */
 #define COM_TYPE_QUERY				1
@@ -266,6 +272,20 @@ struct com_msg_unlink_shm_region {
 struct com_msg_manager_termination {
 	struct com_msg_hdr msg_hdr;
 	/* Empty */
+} __attribute__((aligned));
+
+/*!
+ * \brief Trusted UI Display Initalization Message
+ */
+struct com_msg_tui_display_init {
+	struct com_msg_hdr msg_hdr;
+	/* TODO: Add information about the display */
+	char test[100];
+} __attribute__((aligned));
+
+struct com_msg_tui_ta2display {
+	struct com_msg_hdr msg_hdr;
+	/* Rest of the stuff will be appended in MessagePack serialization format */
 } __attribute__((aligned));
 
 /*

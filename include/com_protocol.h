@@ -64,6 +64,7 @@
 #define COM_MSG_NAME_OPEN_SHM_REGION		0x0C
 #define COM_MSG_NAME_UNLINK_SHM_REGION		0x0D
 #define COM_MSG_NAME_MANAGER_TERMINATION	0x0E
+#define COM_MSG_NAME_TUI_DISPLAY_MSG		0x0F
 
 /* Request is used internally */
 #define COM_TYPE_QUERY				1

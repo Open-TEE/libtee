@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_7f68c0f5",
+        "filename": "src/tee_client_api.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2015-01-11T08:56:42Z",
+      "side": 1,
+      "message": "and what ? free shared mem AND ... :)",
+      "range": {
+        "startLine": 147,
+        "startChar": 12,
+        "endLine": 147,
+        "endChar": 37
+      },
+      "revId": "c0d823906cc42a333c444a7218f761ebc6311285",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

@@ -393,7 +393,8 @@ static void copy_tee_operation_to_internal(TEEC_Operation *operation,
  * \param internal_op The internal transport format
  */
 static void copy_internal_to_tee_operation(TEEC_Operation *operation,
-					   struct com_msg_operation *internal_op)
+					   struct com_msg_operation *internal_op,
+					   struct com_msg_operation *recv_internal_op)
 {
 	int i;
 	uint32_t param_types = operation->paramTypes;
@@ -420,6 +421,9 @@ static void copy_internal_to_tee_operation(TEEC_Operation *operation,
 			mem_source = operation->params[i].memref.parent;
 			if (mem_source) {
 
+				/* Updated TA written bytes to operation */
+				mem_source->size = recv_internal_op->params[i].memref.size;
+
 				/* We have some shared memory area */
 				internal_imp = (struct shared_mem_internal *)mem_source->imp;
 				if (internal_imp->type == REGISTERED) {
@@ -432,6 +436,7 @@ static void copy_internal_to_tee_operation(TEEC_Operation *operation,
 						continue;
 					}
 
+					/* Sync only TA written bytes! */
 					memcpy(mem_source->buffer,
 					       internal_imp->reg_address,
 					       mem_source->size);
@@ -771,7 +776,7 @@ TEEC_Result TEEC_OpenSession(TEEC_Context *context, TEEC_Session *session,
 
 	/* copy back the response data contained in the operation */
 	if (operation)
-		copy_internal_to_tee_operation(operation, &open_msg.operation);
+		copy_internal_to_tee_operation(operation, &open_msg.operation, &recv_msg->operation);
 
 	if (result != TEE_SUCCESS)
 		goto err_ret;
@@ -963,7 +968,7 @@ TEEC_Result TEEC_InvokeCommand(TEEC_Session *session, uint32_t command_id,
 
 	/* copy back the response data contained in the operation */
 	if (operation)
-		copy_internal_to_tee_operation(operation, &invoke_msg.operation);
+		copy_internal_to_tee_operation(operation, &invoke_msg.operation, &recv_msg->operation);
 
 	free(recv_msg);
 	return result;

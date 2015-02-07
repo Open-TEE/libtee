@@ -350,8 +350,9 @@ static void copy_tee_operation_to_internal(TEEC_Operation *operation,
 		} else if (TEEC_PARAM_TYPE_GET(internal_op->paramTypes, i) == TEEC_VALUE_INPUT ||
 			   TEEC_PARAM_TYPE_GET(internal_op->paramTypes, i) == TEEC_VALUE_INOUT) {
 
-			memcpy(&internal_op->params[i].value,
+			memcpy(&internal_op->params[i].param.value,
 			       &operation->params[i].value, sizeof(TEEC_Value));
+			continue;
 
 		} else if (TEEC_PARAM_TYPE_GET(internal_op->paramTypes, i) == TEEC_MEMREF_PARTIAL_INPUT ||
 			   TEEC_PARAM_TYPE_GET(internal_op->paramTypes, i) == TEEC_MEMREF_PARTIAL_INOUT ||
@@ -365,6 +366,9 @@ static void copy_tee_operation_to_internal(TEEC_Operation *operation,
 
 		if (!(mem_source = operation->params[i].memref.parent))
 			continue; /* Buffer is NULL == user error? */
+
+		/* Flags is used for separating MEMREF_WHOLE type (read or write) */
+		internal_op->params[i].flags = mem_source->flags;
 
 		/* We have some shared memory area */
 		internal_imp = (struct shared_mem_internal *)mem_source->imp;
@@ -384,10 +388,10 @@ static void copy_tee_operation_to_internal(TEEC_Operation *operation,
 				 * the operation that is being passed.  This will allow us
 				 * to open the same segment in the TA side
 				 */
-		strncpy(internal_op->params[i].memref.shm_area,
+		strncpy(internal_op->params[i].param.memref.shm_area,
 			internal_imp->shm_uuid, SHM_MEM_NAME_LEN);
 
-		internal_op->params[i].memref.size = mem_source->size;
+		internal_op->params[i].param.memref.size = mem_source->size;
 	}
 }
 
@@ -414,7 +418,8 @@ static void copy_internal_to_tee_operation(TEEC_Operation *operation,
 			   TEEC_PARAM_TYPE_GET(operation->paramTypes, i) == TEEC_VALUE_INOUT) {
 
 			memcpy(&operation->params[i].value,
-			       &internal_op->params[i].value, sizeof(TEEC_Value));
+			       &internal_op->params[i].param.value, sizeof(TEEC_Value));
+			continue;
 
 		} else if (TEEC_PARAM_TYPE_GET(operation->paramTypes, i) == TEEC_MEMREF_PARTIAL_INPUT ||
 			   TEEC_PARAM_TYPE_GET(operation->paramTypes, i) == TEEC_MEMREF_PARTIAL_INOUT ||

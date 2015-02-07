@@ -22,6 +22,29 @@
       "revId": "fb421e4ed3c415bcdfb348f5e90d50b090c2413b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e45ed2e8",
+        "filename": "src/tee_client_api.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2015-02-07T19:53:23Z",
+      "side": 1,
+      "message": "missing an else if",
+      "range": {
+        "startLine": 361,
+        "startChar": 2,
+        "endLine": 361,
+        "endChar": 3
+      },
+      "revId": "fb421e4ed3c415bcdfb348f5e90d50b090c2413b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }

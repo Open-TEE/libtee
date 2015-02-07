@@ -356,7 +356,7 @@ static void copy_tee_operation_to_internal(TEEC_Operation *operation,
 
 		} else if (TEEC_PARAM_TYPE_GET(internal_op->paramTypes, i) == TEEC_MEMREF_PARTIAL_INPUT ||
 			   TEEC_PARAM_TYPE_GET(internal_op->paramTypes, i) == TEEC_MEMREF_PARTIAL_INOUT ||
-			   TEEC_PARAM_TYPE_GET(internal_op->paramTypes, i) == TEEC_MEMREF_PARTIAL_INOUT) {
+			   TEEC_PARAM_TYPE_GET(internal_op->paramTypes, i) == TEEC_MEMREF_PARTIAL_OUTPUT) {
 			OT_LOG(LOG_ERR, "WARNING: MEMREF partial is not implemented")
 			continue;
 		}
@@ -372,6 +372,10 @@ static void copy_tee_operation_to_internal(TEEC_Operation *operation,
 
 		/* We have some shared memory area */
 		internal_imp = (struct shared_mem_internal *)mem_source->imp;
+
+		if (internal_op->params[i].flags & PARAM_FETCHS_SIZE)
+			continue;
+
 		if (internal_imp->type == REGISTERED) {
 
 			/* Copy the data from the buffer registered by the user
@@ -423,7 +427,7 @@ static void copy_internal_to_tee_operation(TEEC_Operation *operation,
 
 		} else if (TEEC_PARAM_TYPE_GET(operation->paramTypes, i) == TEEC_MEMREF_PARTIAL_INPUT ||
 			   TEEC_PARAM_TYPE_GET(operation->paramTypes, i) == TEEC_MEMREF_PARTIAL_INOUT ||
-			   TEEC_PARAM_TYPE_GET(operation->paramTypes, i) == TEEC_MEMREF_PARTIAL_INOUT) {
+			   TEEC_PARAM_TYPE_GET(operation->paramTypes, i) == TEEC_MEMREF_PARTIAL_OUTPUT) {
 			OT_LOG(LOG_ERR, "WARNING: MEMREF partial is not implemented")
 			continue;
 		}
@@ -434,8 +438,15 @@ static void copy_internal_to_tee_operation(TEEC_Operation *operation,
 		if (!(mem_source = operation->params[i].memref.parent))
 			continue;
 
+		/* Update size to operation */
+		mem_source->size = internal_op->params[i].param.memref.size;
+
 		/* We have some shared memory area */
 		internal_imp = (struct shared_mem_internal *)mem_source->imp;
+
+		if (internal_op->params[i].flags & PARAM_FETCHS_SIZE)
+			continue;
+
 		if (internal_imp->type == REGISTERED) {
 
 			/* Copy the data from the shared memory region back into
@@ -492,12 +503,14 @@ static void unregister_temp_refs(TEEC_Operation *operation, TEEC_SharedMemory *t
 	FOR_EACH_TEMP_SHM(i) {
 
 		if (TEEC_PARAM_TYPE_GET(operation->paramTypes, i) == TEEC_MEMREF_TEMP_INPUT ||
-		    TEEC_PARAM_TYPE_GET(operation->paramTypes, i) == TEEC_MEMREF_TEMP_INOUT ||
+		    TEEC_PARAM_TYPE_GET(operation->paramTypes, i) == TEEC_MEMREF_TEMP_OUTPUT ||
 		    TEEC_PARAM_TYPE_GET(operation->paramTypes, i) == TEEC_MEMREF_TEMP_INOUT) {
 
 			operation->params[i].tmpref.buffer = temp_shm[i].buffer;
 			operation->params[i].tmpref.size = temp_shm[i].size;
-			TEEC_ReleaseSharedMemory(&temp_shm[i]);
+
+			if (!(temp_shm[i].flags & PARAM_FETCHS_SIZE))
+				TEEC_ReleaseSharedMemory(&temp_shm[i]);
 		}
 	}
 }
@@ -520,17 +533,22 @@ static TEEC_Result register_temp_refs(TEEC_Operation *operation, TEEC_SharedMemo
 	FOR_EACH_TEMP_SHM(i) {
 
 		if (TEEC_PARAM_TYPE_GET(operation->paramTypes, i) == TEEC_MEMREF_TEMP_INPUT ||
-		    TEEC_PARAM_TYPE_GET(operation->paramTypes, i) == TEEC_MEMREF_TEMP_INOUT ||
+		    TEEC_PARAM_TYPE_GET(operation->paramTypes, i) == TEEC_MEMREF_TEMP_OUTPUT ||
 		    TEEC_PARAM_TYPE_GET(operation->paramTypes, i) == TEEC_MEMREF_TEMP_INOUT) {
 
 			temp_shm[i].buffer = operation->params[i].tmpref.buffer;
 			temp_shm[i].size = operation->params[i].tmpref.size;
+			operation->params[i].memref.parent = &temp_shm[i];
+
+			if (!temp_shm[i].size && !temp_shm[i].buffer) {
+				temp_shm[i].flags |= PARAM_FETCHS_SIZE;
+				continue;
+			}
 
 			ret = create_shared_mem(ctx, &temp_shm[i], REGISTERED);
 			if (ret != TEEC_SUCCESS)
 				goto err;
 
-			operation->params[i].memref.parent = &temp_shm[i];
 		}
 	}
 

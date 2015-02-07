@@ -70,6 +70,8 @@
 #define COM_TYPE_RESPONSE			0
 
 #define TA_MAX_NAME_LEN				255
+/* PARAM_FETCHS_SIZE : must not collide with TEEC_MEM_IN or TEEC_MEM_OUT */
+#define PARAM_FETCHS_SIZE			0x00010000
 /* clang-format on */
 
 /*!

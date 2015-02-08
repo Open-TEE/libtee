@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_44ffe634",
+        "filename": "src/tee_client_api.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2015-02-08T12:49:22Z",
+      "side": 1,
+      "message": "ah you add it in this patch, so merge these 2 patches into 1",
+      "range": {
+        "startLine": 355,
+        "startChar": 3,
+        "endLine": 355,
+        "endChar": 11
+      },
+      "revId": "b8108066bfc12e271af99249ba4e9d7564a83cb4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_8daf33e3",
+        "filename": "include/com_protocol.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1000804
+      },
+      "writtenOn": "2015-02-13T11:29:48Z",
+      "side": 1,
+      "message": "Move to own file",
+      "revId": "0e8d51f02f278a5ddd95216d471ed3968181571d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_526e7a02",
+        "filename": "include/com_protocol.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1000804
+      },
+      "writtenOn": "2015-02-13T11:29:48Z",
+      "side": 1,
+      "message": "We are not using typedefs.",
+      "revId": "0e8d51f02f278a5ddd95216d471ed3968181571d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

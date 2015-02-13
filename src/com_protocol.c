@@ -165,7 +165,7 @@ err:
 	return ret;
 }
 
-int com_send_msg(int sockfd, void *msg, int msg_len)
+int com_send_msg(int sockfd, void *msg, unsigned int msg_len)
 {
 	struct iovec iov[ELEMENTS_IN_MESSAGE];
 	int bytes_write;
@@ -201,7 +201,6 @@ int com_send_msg(int sockfd, void *msg, int msg_len)
 
 		break;
 	}
-
 	return bytes_write - sizeof(struct com_transport_info);
 }
 

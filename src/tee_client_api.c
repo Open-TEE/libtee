@@ -135,7 +135,7 @@ static bool verify_msg_name_and_type(void *msg, uint8_t expected_name, uint8_t e
 	return true;
 }
 
-static int send_msg(int fd, void *msg, int msg_len, pthread_mutex_t mutex)
+static int send_msg(int fd, void *msg, unsigned int msg_len, pthread_mutex_t mutex)
 {
 	int ret;
 

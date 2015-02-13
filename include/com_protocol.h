@@ -64,6 +64,11 @@
 #define COM_MSG_NAME_OPEN_SHM_REGION		0x0C
 #define COM_MSG_NAME_UNLINK_SHM_REGION		0x0D
 #define COM_MSG_NAME_MANAGER_TERMINATION	0x0E
+#define COM_MSG_NAME_INVOKE_MGR_CMD			0x0F
+
+
+/* ta to manager commands */
+#define COM_MGR_CMD_ID_CREATE_PERSISTENT	0x01
 
 /* Request is used internally */
 #define COM_TYPE_QUERY				1
@@ -140,6 +145,33 @@ struct com_msg_open_session {
 	TEE_Result return_code_create_entry;
 	TEE_Result return_code_open_session;
 	uint32_t return_origin;
+} __attribute__((aligned));
+
+struct __com_mgr_payload {
+	size_t size;
+	void *data;
+} __attribute__((aligned));
+typedef struct __com_mgr_payload MGR_Payload;
+
+#define TEE_OBJECT_ID_MAX_LEN 64
+
+struct com_mrg_create_persistent {
+	uint32_t storageID;
+	uint32_t flags;
+	char objectID[TEE_OBJECT_ID_MAX_LEN];
+	size_t objectIDLen;
+	void *attributeHandleOffset;
+} __attribute__((aligned));
+/*!
+ * \brief The com_msg_invoke_cmd struct
+ * CA or TA is invoking command from TA (TEEC_InvokeCommand)
+ */
+struct com_msg_invoke_mgr_cmd {
+	struct com_msg_hdr msg_hdr;
+	TEE_Result returnOrigin;
+	uint32_t cmd_id;
+	MGR_Payload payload;
+
 } __attribute__((aligned));
 
 /*!

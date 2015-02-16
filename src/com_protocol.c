@@ -30,13 +30,6 @@ static const uint32_t COM_MSG_START = 0xABCDEF12;
 #define TRY_READ_FD_COUNT 5
 #define ELEMENTS_IN_MESSAGE 2
 
-/* Transport information */
-struct com_transport_info {
-	uint64_t checksum;
-	uint32_t start;
-	uint32_t data_len; /* data_len: user message length */
-} __attribute__((aligned));
-
 static int read_iov_element(int fd, struct iovec *iov)
 {
 	int read_bytes = 0;

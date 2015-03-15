@@ -29,6 +29,11 @@
 #include "tee_client_api.h"
 #include "tee_logging.h"
 
+#ifdef ANDROID
+#include <linux/ashmem.h>
+#include "cutils/ashmem.h"
+#endif
+
 /* TODO fix this to point to the correct location */
 const char *sock_path = "/tmp/open_tee_sock";
 
@@ -174,7 +179,10 @@ static void free_shm_and_from_manager(struct shared_mem_internal *shm_internal)
 
 	/* Remove the memory mapped region and the shared memory */
 	munmap(shm_internal->reg_address, shm_internal->org_size);
+#ifndef ANDROID
 	shm_unlink(shm_internal->shm_uuid);
+#endif
+
 }
 
 /*!
@@ -251,7 +259,12 @@ static TEEC_Result get_shm_from_manager_and_map_region(struct shared_mem_interna
 
 	memcpy(shm_internal->shm_uuid, recv_msg->name, SHM_MEM_NAME_LEN);
 
-	fd = shm_open(shm_internal->shm_uuid, (O_RDWR | O_RDONLY), 0);
+#ifdef ANDROID
+    fd = ashmem_create_region(shm_internal->shm_uuid, 20000); // TODO: add actual size here instead of 20000
+    ashmem_set_prot_region(fd, PROT_READ | PROT_WRITE);
+#else
+    fd = shm_open(shm_internal->shm_uuid, (O_RDWR | O_RDONLY), 0);
+#endif
 	if (fd == -1) {
 		OT_LOG(LOG_ERR, "Failed to open the shared memory area");
 		result = TEEC_ERROR_GENERIC;

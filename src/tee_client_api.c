@@ -138,13 +138,15 @@ static bool verify_msg_name_and_type(void *msg, uint8_t expected_name, uint8_t e
 static int send_msg(int fd, void *msg, int msg_len, pthread_mutex_t mutex)
 {
 	int ret;
+	struct com_msg_hdr *header;
 
 	if (pthread_mutex_lock(&mutex)) {
 		OT_LOG(LOG_ERR, "Failed to lock mutex");
 		return -1;
 	}
 
-	ret = com_send_msg(fd, msg, msg_len);
+	header = msg;
+	ret = com_send_msg(fd, msg, msg_len, header->shareable_fd, header->shareable_fd_count);
 
 	if (pthread_mutex_unlock(&mutex))
 		OT_LOG(LOG_ERR, "Failed to unlock mutex");
@@ -218,7 +220,7 @@ static TEEC_Result get_shm_from_manager_and_map_region(struct shared_mem_interna
 	}
 
 	/* Wait for answer */
-	com_ret = com_recv_msg(ctx_internal.sockfd, (void **)(&recv_msg), NULL);
+	com_ret = com_recv_msg(ctx_internal.sockfd, (void **)(&recv_msg), NULL, open_shm.msg_hdr.shareable_fd, &open_shm.msg_hdr.shareable_fd_count);
 
 	if (pthread_mutex_unlock(&ctx_internal.mutex))
 		OT_LOG(LOG_ERR, "Failed to unlock mutex"); /* No action */
@@ -251,25 +253,16 @@ static TEEC_Result get_shm_from_manager_and_map_region(struct shared_mem_interna
 
 	memcpy(shm_internal->shm_uuid, recv_msg->name, SHM_MEM_NAME_LEN);
 
-	fd = shm_open(shm_internal->shm_uuid, (O_RDWR | O_RDONLY), 0);
-	if (fd == -1) {
-		OT_LOG(LOG_ERR, "Failed to open the shared memory area");
-		result = TEEC_ERROR_GENERIC;
-		goto release_shm_1;
-	}
-
 	/* mmap does not allow for the size to be zero, however the TEEC API allows it, so map a
 	 * size of 1 byte, though it will probably be mapped to a page */
 	shm_internal->reg_address = mmap(NULL, shm_internal->org_size,
-					 (PROT_WRITE | PROT_READ), MAP_SHARED, fd, 0);
+					 (PROT_WRITE | PROT_READ), MAP_SHARED, recv_msg->msg_hdr.shareable_fd[0], 0);
 	if (shm_internal->reg_address == MAP_FAILED) {
 		OT_LOG(LOG_ERR, "Failed to MMAP");
 		result = TEEC_ERROR_OUT_OF_MEMORY;
 		goto release_shm_2;
 	}
 
-	/* We have finished with the file handle as it has been mapped so don't leak it */
-	close(fd);
 	free(recv_msg);
 	return result;
 
@@ -635,7 +628,7 @@ TEEC_Result TEEC_InitializeContext(const char *name, TEEC_Context *context)
 	}
 
 	/* Wait for answer */
-	com_ret = com_recv_msg(ctx_internal.sockfd, (void **)(&recv_msg), NULL);
+	com_ret = com_recv_msg(ctx_internal.sockfd, (void **)(&recv_msg), NULL, NULL, NULL);
 
 	if (pthread_mutex_unlock(&ctx_internal.mutex))
 		OT_LOG(LOG_ERR, "Failed to unlock mutex"); /* No action */
@@ -832,7 +825,7 @@ TEEC_Result TEEC_OpenSession(TEEC_Context *context, TEEC_Session *session,
 		operation->started = TEE_OPERATION_STARTED;
 
 	/* Wait for answer */
-	com_ret = com_recv_msg(ctx_internal.sockfd, (void **)(&recv_msg), NULL);
+	com_ret = com_recv_msg(ctx_internal.sockfd, (void **)(&recv_msg), NULL, NULL, NULL);
 
 	/* Received message -> operation returned from TEE */
 	if (operation)
@@ -1029,7 +1022,7 @@ TEEC_Result TEEC_InvokeCommand(TEEC_Session *session, uint32_t command_id,
 		operation->started = TEE_OPERATION_STARTED;
 
 	/* Wait for answer */
-	com_ret = com_recv_msg(session_internal->sockfd, (void **)(&recv_msg), NULL);
+	com_ret = com_recv_msg(session_internal->sockfd, (void **)(&recv_msg), NULL, NULL, NULL);
 
 	/* Received message -> operation returned from TEE */
 	if (operation)

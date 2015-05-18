@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_7daf377e",
+        "filename": "src/tee_client_api.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 1003707
+      },
+      "writtenOn": "2015-05-18T08:42:26Z",
+      "side": 1,
+      "message": "due to SHM_MEM_NAME generation change (generate_random_path, shm_mem.c in manager), it is always 45 bytes terminated with null, so this can be change to memcpy of size SHM_MEM_NAME_LEN if preferred.",
+      "revId": "560fdf7ec653572c7e35d1eae6396f380d489b7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

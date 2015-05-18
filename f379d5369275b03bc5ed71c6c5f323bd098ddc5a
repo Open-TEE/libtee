@@ -16,6 +16,24 @@
       "revId": "f379d5369275b03bc5ed71c6c5f323bd098ddc5a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_182a917e",
+        "filename": "include/com_protocol.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2015-05-18T09:56:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_fd4cc7ca",
+      "revId": "f379d5369275b03bc5ed71c6c5f323bd098ddc5a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }

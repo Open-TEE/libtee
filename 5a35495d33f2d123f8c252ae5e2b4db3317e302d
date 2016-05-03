@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_3bcea5b4",
+        "filename": "src/tee_client_api.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2016-05-03T06:40:45Z",
+      "side": 1,
+      "message": "this comment is misleading as the direction here is from CA -\u003e TA as we are packaging up an operation to send across",
+      "range": {
+        "startLine": 400,
+        "startChar": 21,
+        "endLine": 400,
+        "endChar": 22
+      },
+      "revId": "5a35495d33f2d123f8c252ae5e2b4db3317e302d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_1bc6419a",
+        "filename": "src/tee_client_api.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 1000797
+      },
+      "writtenOn": "2016-05-03T06:40:45Z",
+      "side": 1,
+      "message": "just add in the section number (4.3.8. TEEC_RegisteredMemoryReference, and a short comment that points to the Size being changed according to paragraph 2.2 under the Size description. Just so we do not spend 40 minutes figuring it out next time ;)",
+      "range": {
+        "startLine": 471,
+        "startChar": 21,
+        "endLine": 471,
+        "endChar": 30
+      },
+      "revId": "5a35495d33f2d123f8c252ae5e2b4db3317e302d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
